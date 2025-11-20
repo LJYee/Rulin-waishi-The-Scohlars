@@ -9,8 +9,8 @@ import streamlit.components.v1 as components
 
 # ---------------------- 数据预处理（基于您的CSV） ----------------------
 # 读取数据
-df = pd.read_csv("/Users/ye/CHC 5904/my_streamlit_app/读取1.csv", encoding='utf-8')
-
+#df = pd.read_csv("/Users/ye/CHC 5904/my_streamlit_app/读取1.csv", encoding='utf-8')
+df = pd.read_csv('读取1.csv', encoding='utf-8')
 # 统一字段名，便于调用
 df.rename(columns={
     '回次': 'chapter',
