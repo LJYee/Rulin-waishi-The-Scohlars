@@ -6,10 +6,11 @@ from streamlit_folium import st_folium
 from pyvis.network import Network
 import streamlit.components.v1 as components
 
-# ---------------------- 数据预处理 ----------------------
+
+# ---------------------- 数据预处理（基于您的CSV） ----------------------
 # 读取数据
 #df = pd.read_csv("/Users/ye/CHC 5904/my_streamlit_app/读取1.csv", encoding='utf-8')
-df = pd.read_csv('读取1.csv', encoding='utf-8')
+df = pd.read_csv("读取1.csv", encoding='utf-8')
 # 统一字段名，便于调用
 df.rename(columns={
     '回次': 'chapter',
@@ -54,7 +55,6 @@ loc_chapter_detail['chapter_freq_str'] = loc_chapter_detail.apply(
 loc_chapter_detail = loc_chapter_detail.groupby('location')['chapter_freq_str'].apply(list).reset_index()
 # 合并统计结果
 loc_stats = loc_chapter_stats.merge(loc_chapter_detail, on='location')
-
 # ---------------------- 固定标题到页面顶端 ----------------------
 def fix_title_to_top():
     st.markdown("""
@@ -312,7 +312,11 @@ with tab2:
     else:
         # 第二步：统计节点频次（用于动态调整节点大小）
         # 1. 地点频次：按loc_total_freq求和（总出现次数）
-        loc_freq = net_df.groupby('location')['loc_total_freq'].sum().reset_index()
+        net_df_unique = net_df.drop_duplicates(
+            subset=['chapter', 'location'],  # 关键：按“章回+地点”去重，替换“chapter”为你的章回列名（如“章回”）
+            keep='first'  # 保留每组第一行数据（同一章回+地点的行，loc_total_freq相同，保留哪行都一样）
+            )
+        loc_freq = net_df_unique.groupby('location')['loc_total_freq'].sum().reset_index()
         loc_freq.columns = ['node', 'freq']
         loc_freq['type'] = '地点'  # 标记节点类型
         
@@ -362,7 +366,7 @@ with tab2:
                 n_id=f"loc_{loc}",  # 节点ID前缀：loc_，避免与人物ID冲突
                 label=f"{loc}\n（{freq}次）",  # 标签：地点+频次
                 size=size,
-                color="#652D2D",  # 区分地点节点
+                color="#5D2B09",  # 区分地点节点
                 title=title,  # Hover提示
                 font={"size": 12, "weight": "bold"}  # 字体加粗，提升辨识度
             )
@@ -379,7 +383,7 @@ with tab2:
                 n_id=f"char_{char}",  # 节点ID前缀：char_，避免与地点ID冲突
                 label=f"{char}\n（{freq}个地点）",  # 标签：人物+关联地点数
                 size=size,
-                color="#DAB6B2",  # 区分人物节点
+                color="#DAC6B2",  # 区分人物节点
                 title=title,  # Hover提示
                 font={"size": 12, "weight": "bold"}
             )
@@ -422,7 +426,7 @@ with tab2:
         net.show_buttons(["physics", "nodes", "edges"])
         
         # 3. 保存图谱到本地（适配macOS路径，避免/mnt问题）
-        # 🔴 替换保存和显示逻辑：用Streamlit临时目录+components.v1.html加载
+        # 替换保存和显示逻辑：用Streamlit临时目录+components.v1.html加载
         import streamlit.components.v1 as components
         import os
         import tempfile
@@ -442,17 +446,9 @@ with tab2:
              html_content = f.read()
         components.html(html_content, width="100%", height=800, scrolling=True)
 
-# 
-        # 5. 图谱说明（帮助用户理解）
-        #st.info("""
-        #    📌 图谱说明：
-       #     1. 蓝色节点：地点（大小=地点总出现次数，Hover查看关联人物）；
-        #    2. 橙色节点：人物（大小=人物关联地点数，Hover查看关联地点）；
-        #   3. 灰色边：人物-地点关联（Hover查看涉及章回和活动类型）；
-         # 4. 右侧调节按钮：可调整节点大小、边宽度、图谱布局等参数。
-       # """)
-        st.caption("深红色=地点（大小=总出现次数）" \
-                   "浅红色=人物角色" 
+     
+        st.caption("深色=地点（大小=总出现次数）" \
+                   "浅色=人物角色" 
         )
     
     st.markdown("### 二、地点-活动类型关联图谱")  # 第二个图谱标题
@@ -473,8 +469,12 @@ with tab2:
         (df['activity_type'].isin(selected_acts_net))
     ].copy()
     
+    net_df_loc_act_unique = net_df_loc_act.drop_duplicates(
+    subset=['chapter', 'location'],  # 按“章回+地点”去重，核心去重条件
+    keep='first'  # 保留每组第一行（同一章回+地点的loc_total_freq相同，不影响结果）
+    )
     # 2. 地点-活动图谱：生成与显示
-    if net_df_loc_act.empty:
+    if net_df_loc_act_unique.empty:
         st.warning("暂无符合条件的地点-活动关联数据，请调整筛选条件！")
     else:
         # 初始化地点-活动网络图
@@ -483,8 +483,8 @@ with tab2:
             bgcolor="#f8f9fa", font_color="#333333"
         )
         
-        # ① 添加地点节点（绿色，大小=总出现次数）
-        loc_stats_act = net_df_loc_act.groupby('location').agg({
+        # ① 添加地点节点（大小=总出现次数）
+        loc_stats_act = net_df_loc_act_unique.groupby('location').agg({
             'loc_total_freq': 'sum',
             'activity_type': lambda x: x.value_counts().to_dict()
         }).reset_index()
@@ -498,7 +498,7 @@ with tab2:
                 f"loc_act_{loc}",  # 前缀区分，避免与人物-地点图谱ID冲突
                 label=f"{loc}\n（{total_freq}次）",
                 size=25 + total_freq * 2,  # 大小随总次数变化
-                color="#1F3059",  # 深紫色=地点
+                color="#591F24",  # 深紫色=地点
                 title=f"地点：{loc}\n总出现次数：{total_freq}次\n关联活动：{act_str}"
             )
         
@@ -517,7 +517,7 @@ with tab2:
                 f"act_loc_{act}",  # 前缀区分，避免ID冲突
                 label=f"{act}\n（{loc_count}地）",
                 size=20 + loc_count * 3,  # 大小随关联地点数变化
-                color="#a6c1ed",  # 紫色=活动类型
+                color="#ebbcbf",  # 紫色=活动类型
                 title=f"活动类型：{act}\n关联地点数：{loc_count}个\n涉及地点：{loc_str}"
             )
         
@@ -553,8 +553,8 @@ with tab2:
                 components.html(f_html.read(), width="100%", height=600, scrolling=False)
         
         # ⑥ 图谱说明
-        st.caption("深蓝色=地点（大小=总出现次数）" \
-        "浅蓝色=活动类型（大小=关联地点数）" \
+        st.caption("深色=地点（大小=总出现次数）" \
+        "浅色=活动类型（大小=关联地点数）" \
         "边越粗=活动在该地点频次越高")
 
 # ---------------------- 标签页3：地点-人物-活动统计看板 ----------------------
