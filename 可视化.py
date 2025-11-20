@@ -6,8 +6,7 @@ from streamlit_folium import st_folium
 from pyvis.network import Network
 import streamlit.components.v1 as components
 
-
-# ---------------------- 数据预处理（基于您的CSV） ----------------------
+# ---------------------- 数据预处理 ----------------------
 # 读取数据
 #df = pd.read_csv("/Users/ye/CHC 5904/my_streamlit_app/读取1.csv", encoding='utf-8')
 df = pd.read_csv('读取1.csv', encoding='utf-8')
@@ -56,15 +55,44 @@ loc_chapter_detail = loc_chapter_detail.groupby('location')['chapter_freq_str'].
 # 合并统计结果
 loc_stats = loc_chapter_stats.merge(loc_chapter_detail, on='location')
 
+# ---------------------- 固定标题到页面顶端 ----------------------
+def fix_title_to_top():
+    st.markdown("""
+        <style>
+        /* 1. 创建固定容器的样式 */
+        .fixed-header {
+            position: fixed;  /* 固定定位 */
+            top: 0;           /* 顶端对齐 */
+            left: 0;
+            right: 0;
+            background-color: #ffffff;  /* 背景色（与页面背景一致，避免遮挡） */
+            z-index: 1000;    /* 层级最高，确保不被其他元素覆盖 */
+            padding: 20px;    /* 内边距，调整标题与边缘的距离 */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);  /* 可选：添加阴影，增强层次感 */
+        }
+        /* 2. 调整下方内容的上边距，避免被标题遮挡 */
+        .stApp > div {
+            margin-top: 120px !important;  /* 标题高度+内边距，根据实际情况调整 */
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # 用容器包裹标题，应用固定样式
+    with st.container():
+        st.markdown('<div class="fixed-header">', unsafe_allow_html=True)
+        st.title('《儒林外史》可视化分析')
+        st.markdown('以《儒林外史》第10-29章回为材料进行可视化分析地点与人物活动之间的关联，探究不同地点的人物活动特征')
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# 调用函数，固定标题
+fix_title_to_top()
 # ---------------------- 页面设计（三个标签页） ----------------------
 tab1, tab2, tab3 = st.tabs([
     "1. 地点坐标地图", 
     "2. 双维度关联网络图", 
     "3. 地点-人物-活动统计看板"
 ])
-st.title("《儒林外史》可视化分析")
-st.caption("以《儒林外史》第10-29章回为材料进行可视化" \
-"分析地点与人物活动之间的关联，探究不同地点的人物活动特征")
+
 # ---------------------- 标签页1：地点坐标地图 ----------------------
 with tab1:
     st.title("《儒林外史》地点坐标地图")
