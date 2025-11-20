@@ -10,7 +10,8 @@ pycparser @ file:///opt/miniconda3/conda-bld/pycparser_1757496094255/work
 pydeck @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_4duo28e8bs/croot/pydeck_1738346613542/work
 python-dateutil @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_66ud1l42_h/croot/python-dateutil_1716495741162/work
 pyvis==0.3.2
-requests @ file:///opt/miniconda3/conda-bld/requests_1762359594551/work
+requests==2.32.5
 streamlit==1.51.0
 streamlit-folium==0.25.3
+
 
