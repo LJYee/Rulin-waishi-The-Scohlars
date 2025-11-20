@@ -468,6 +468,11 @@ with tab2:
         (df['location'].isin(selected_locs_net)) &
         (df['activity_type'].isin(selected_acts_net))
     ].copy()
+
+    net_df_loc_act_unique = net_df_loc_act.drop_duplicates(
+    subset=['chapter', 'location'],  # 按“章回+地点”去重，核心去重条件
+    keep='first'  # 保留每组第一行（同一章回+地点的loc_total_freq相同，不影响结果）
+    )
     
     net_df_loc_act_unique = net_df_loc_act.drop_duplicates(
     subset=['chapter', 'location'],  # 按“章回+地点”去重，核心去重条件
