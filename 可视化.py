@@ -71,6 +71,7 @@ tab1, tab2, tab3 = st.tabs([
 with tab1:
     st.title("《儒林外史》地点坐标地图")
     st.caption("侧边栏滑动筛选章回可查看不同章回地点地图")
+    st.caption("筛选活动类型了解不同分布")
     st.sidebar.header("地图筛选条件") #侧边栏
     #1.地点筛选（用rename后的location字段）
     selected_locs = st.sidebar.multiselect(
@@ -130,7 +131,7 @@ with tab1:
             
             # 活动类型颜色映射
             act_color_map = {
-                 "官场任职": "#E67E22",  
+                 "官场任职": "#2232E6",  
                  "家庭生活": "#EEAA9C",  
                  "科举备考": "#3498DB",  
                  "商业经济": "#8E44AD",  
