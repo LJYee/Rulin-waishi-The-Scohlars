@@ -207,7 +207,8 @@ with tab1:
         # 显示表格（序号设为索引，提升可读性）
         result_df = pd.DataFrame(result_stats)
         st.dataframe(result_df.set_index('序号'), height=400)
-        st.caption("悬浮可见小视窗，了解该城市总出现次数，涉及章回数目，主要活动类型“/
+    
+    st.caption("悬浮可见小视窗，了解该城市总出现次数，涉及章回数目，主要活动类型“/
                    "点击地点可查看详细信息,了解具体章回，主要人物，情节示例")
 
 # tab2-关联网络图，人物-地点，活动-地点
